@@ -17,21 +17,21 @@ def table_exists(session, schema='', name=''):
 
 def create_daily_city_metrics_table(session):
     SHARED_COLUMNS= [T.StructField("DATE", T.DateType()),
-                                        T.StructField("CITY_NAME", T.StringType()),
-                                        T.StructField("COUNTRY_DESC", T.StringType()),
-                                        T.StructField("DAILY_SALES", T.StringType()),
-                                        T.StructField("AVG_TEMPERATURE_FAHRENHEIT", T.DecimalType()),
-                                        T.StructField("AVG_TEMPERATURE_CELSIUS", T.DecimalType()),
-                                        T.StructField("AVG_PRECIPITATION_INCHES", T.DecimalType()),
-                                        T.StructField("AVG_PRECIPITATION_MILLIMETERS", T.DecimalType()),
-                                        T.StructField("MAX_WIND_SPEED_100M_MPH", T.DecimalType()),
-                                    ]
+                     T.StructField("CITY_NAME", T.StringType()),
+                     T.StructField("COUNTRY_DESC", T.StringType()),
+                     T.StructField("DAILY_SALES", T.StringType()),
+                     T.StructField("AVG_TEMPERATURE_FAHRENHEIT", T.DecimalType()),
+                     T.StructField("AVG_TEMPERATURE_CELSIUS", T.DecimalType()),
+                     T.StructField("AVG_PRECIPITATION_INCHES", T.DecimalType()),
+                     T.StructField("AVG_PRECIPITATION_MILLIMETERS", T.DecimalType()),
+                     T.StructField("MAX_WIND_SPEED_100M_MPH", T.DecimalType()),
+                    ]
     DAILY_CITY_METRICS_COLUMNS = [*SHARED_COLUMNS, T.StructField("META_UPDATED_AT", T.TimestampType())]
     DAILY_CITY_METRICS_SCHEMA = T.StructType(DAILY_CITY_METRICS_COLUMNS)
 
     dcm = session.create_dataframe([[None]*len(DAILY_CITY_METRICS_SCHEMA.names)], schema=DAILY_CITY_METRICS_SCHEMA) \
-                        .na.drop() \
-                        .write.mode('overwrite').save_as_table('ANALYTICS.DAILY_CITY_METRICS')
+                 .na.drop() \
+                 .write.mode('overwrite').save_as_table('ANALYTICS.DAILY_CITY_METRICS')
     dcm = session.table('ANALYTICS.DAILY_CITY_METRICS')
 
 
@@ -43,10 +43,10 @@ def merge_daily_city_metrics(session):
     orders_stream_dates.limit(5).show()
 
     orders = session.table("HARMONIZED.ORDERS_STREAM").group_by(F.col('ORDER_TS_DATE'), F.col('PRIMARY_CITY'), F.col('COUNTRY')) \
-                                        .agg(F.sum(F.col("PRICE")).as_("price_nulls")) \
-                                        .with_column("DAILY_SALES", F.call_builtin("ZEROIFNULL", F.col("price_nulls"))) \
-                                        .select(F.col('ORDER_TS_DATE').alias("DATE"), F.col("PRIMARY_CITY").alias("CITY_NAME"), \
-                                        F.col("COUNTRY").alias("COUNTRY_DESC"), F.col("DAILY_SALES"))
+                    .agg(F.sum(F.col("PRICE")).as_("price_nulls")) \
+                    .with_column("DAILY_SALES", F.call_builtin("ZEROIFNULL", F.col("price_nulls"))) \
+                    .select(F.col('ORDER_TS_DATE').alias("DATE"), F.col("PRIMARY_CITY").alias("CITY_NAME"), \
+                    F.col("COUNTRY").alias("COUNTRY_DESC"), F.col("DAILY_SALES"))
 #    orders.limit(5).show()
 
     weather_pc = session.table("FROSTBYTE_WEATHERSOURCE.ONPOINT_ID.POSTAL_CODES")
